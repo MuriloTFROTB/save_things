@@ -4,8 +4,9 @@ import 'package:flutter/widgets.dart';
 class Item {
   String nome;
   String descricao;
+  String capaUrl;
 
-  Item({required this.nome, required this.descricao});
+  Item({required this.nome, required this.descricao, required this.capaUrl});
 }
 
 class AddItens extends StatefulWidget {
@@ -27,164 +28,171 @@ class _AddItensState extends State<AddItens> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  void _showImageLinkDialog(BuildContext context) {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Insira o link da imagem'),
-            content: TextField(
-              controller: _imageLinkController,
-              decoration: InputDecoration(hintText: 'Link da Imagem'),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('Cancelar'),
-              ),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    imageUrl = _imageLinkController.text;
-                  });
-                  Navigator.of(context).pop();
-                },
-                child: Text('Ok'),
-              ),
-            ],
-          );
-        });
+  void _updateImage() {
+    setState(() {
+      imageUrl = _imageLinkController.text.isNotEmpty
+          ? _imageLinkController.text
+          : null;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: ListView(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
               children: [
-                GestureDetector(
-                  onTap: () => _showImageLinkDialog(context),
-                  child: Container(
-                    height: 200,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Color(0xFF6E6C6C),
-                      borderRadius: BorderRadius.circular(10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Link da Capa',
+                      style: TextStyle(fontSize: 16),
                     ),
-                    child: Center(
-                      child: imageUrl == null
-                          ? Container(
-                              decoration: BoxDecoration(
-                                color: const Color.fromARGB(255, 36, 35, 35),
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              child: Icon(
-                                Icons.add,
-                                size: 50,
-                              ),
-                            )
-                          : Image.network(
-                              imageUrl!,
-                              fit: BoxFit.cover,
-                            ),
+                    SizedBox(
+                      height: 8,
                     ),
-                  ),
+                    TextField(
+                      controller: _imageLinkController,
+                      keyboardType: TextInputType.url,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(10),
+                          ),
+                        ),
+                      ),
+                      onChanged: (value) => _updateImage(),
+                    ),
+                  ],
+                ),
+                imageUrl != null
+                    ? Container(
+                        margin: EdgeInsets.only(top: 16),
+                        height: 240,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.network(
+                            imageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Center(
+                                child: Text(
+                                  'Erro ao carregar a imagem',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      )
+                    : Container(),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Text(
+                      'Nome',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    SizedBox(
+                      height: 8,
+                    ),
+                    TextField(
+                      controller: _nomeController,
+                      keyboardType: TextInputType.name,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(
                   height: 20,
                 ),
-                Text(
-                  'Nome',
-                  style: TextStyle(fontSize: 16),
-                ),
+                TextAreaExample(controller: _descricaoController),
                 SizedBox(
-                  height: 8,
+                  height: 20,
                 ),
-                TextField(
-                  controller: _nomeController,
-                  keyboardType: TextInputType.name,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(Colors.green),
+                          foregroundColor:
+                              MaterialStateProperty.all<Color>(Colors.white),
+                          shape: MaterialStateProperty.all<OutlinedBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        onPressed: () {
+                          // Salvar o item
+                          String nome = _nomeController.text;
+                          String descricao = _descricaoController.text;
+                          String capaUrl = _imageLinkController.text;
+                          Item novoItem = Item(
+                            nome: nome,
+                            descricao: descricao,
+                            capaUrl: capaUrl,
+                          );
+                          _showMessage(context);
+                          setState(() {
+                            itens.add(novoItem);
+                          });
+                          // Limpar os campos após salvar
+                          _nomeController.clear();
+                          _descricaoController.clear();
+                          _imageLinkController.clear();
+                          _updateImage(); // Atualizar a imagem
+                        },
+                        child: Text('Salvar'),
                       ),
                     ),
-                  ),
+                    SizedBox(
+                      width: 8,
+                    ),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(Colors.red),
+                          foregroundColor:
+                              MaterialStateProperty.all<Color>(Colors.white),
+                          shape: MaterialStateProperty.all<OutlinedBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        onPressed: () {
+                          // Cancelar a adição de item (limpar os campos)
+                          _nomeController.clear();
+                          _descricaoController.clear();
+                          _imageLinkController.clear();
+                          _updateImage(); // Atualizar a imagem
+                        },
+                        child: Text('Limpar'),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            SizedBox(
-              height: 20,
-            ),
-            TextAreaExample(controller: _descricaoController),
-            SizedBox(
-              height: 20,
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.green),
-                      foregroundColor:
-                          MaterialStateProperty.all<Color>(Colors.white),
-                      shape: MaterialStateProperty.all<OutlinedBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                    onPressed: () {
-                      // Salvar o item
-                      String nome = _nomeController.text;
-                      String descricao = _descricaoController.text;
-                      Item novoItem = Item(nome: nome, descricao: descricao);
-                      _showMessage(context);
-                      setState(() {
-                        itens.add(novoItem);
-                      });
-                      // Limpar os campos após salvar
-                      _nomeController.clear();
-                      _descricaoController.clear();
-                    },
-                    child: Text('Salvar'),
-                  ),
-                ),
-                SizedBox(
-                  width: 8,
-                ),
-                Expanded(
-                  child: ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.red),
-                      foregroundColor:
-                          MaterialStateProperty.all<Color>(Colors.white),
-                      shape: MaterialStateProperty.all<OutlinedBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                    onPressed: () {
-                      // Cancelar a adição de item (limpar os campos)
-                      _nomeController.clear();
-                      _descricaoController.clear();
-                    },
-                    child: Text('Cancelar'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
