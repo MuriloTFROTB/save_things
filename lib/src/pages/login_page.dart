@@ -50,9 +50,10 @@ class _LoginPageState extends State<LoginPage> {
                 decoration: InputDecoration(
                   labelText: 'Senha',
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(
-                    Radius.circular(10),
-                  )),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(10),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(
